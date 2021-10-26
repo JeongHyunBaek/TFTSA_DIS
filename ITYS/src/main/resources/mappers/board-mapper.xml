@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC
+"-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="boardMapper">
+
+	<resultMap type="Board" id="resultBoard">
+		<id column="board_no" property="board_no" />
+		<result column="board_title" property="board_title" />
+		<result column="board_writer" property="board_writer" />
+		<result column="board_content" property="board_content" />
+		<result column="board_date" property="board_date" />
+		<result column="board_original_filename" property="board_original_filename" />
+		<result column="board_rename_filename" property="board_rename_filename" />		
+		<result column="view_cnt" property="view_cnt" />
+	</resultMap>
+
+	<!-- 전체 목록갯수 조회 -->
+	<select id="selectListCount" resultType="_int">
+		select count(*) from board
+	</select>	
+	
+	<!-- 페이지 단위로 게시글 조회 -->
+	<select id="selectList" parameterType="Paging" resultMap="resultBoard">
+			SELECT *  
+			FROM (SELECT ROWNUM RNUM, BOARD_NO, BOARD_TITLE, BOARD_WRITER,   
+			               BOARD_CONTENT, BOARD_DATE,  
+			               BOARD_ORIGINAL_FILENAME, BOARD_RENAME_FILENAME, VIEW_CNT 
+			       FROM (SELECT * FROM BOARD 
+			              ORDER BY BOARD_NO DESC))
+			<![CDATA[where rnum >= #{startRow} and rnum <= #{endRow}]]>
+	</select>
+
+	<!-- 게시글 작성 -->
+	<insert id="insertOriginBoard" parameterType="Board" >
+		insert into board (board_no, board_title, board_writer,
+				board_content, board_date,
+				board_original_filename, board_rename_filename, view_cnt)	
+		values ((select max(board_no) + 1 from board), 
+				#{board_title}, #{board_writer}, #{board_content}, sysdate,
+				#{board_original_filename}, #{board_rename_filename}, default)		
+	</insert>
+
+	<!-- 게시글 번호의 게시글에 대한 조회수 1증가 -->
+	<update id="addReadCount" parameterType="_int">
+		update board 
+		set view_cnt = view_cnt + 1 
+		where board_no = #{board_no}
+	</update>
+
+	<!-- 글 상세보기 -->
+	<select id="selectBoard" parameterType="int" resultMap="resultBoard">
+		select * from board 
+		where board_no = #{board_no}
+	</select>	
+
+	<!-- 게시글 삭제 -->
+	<delete id="deleteBoard" parameterType="Board">
+		delete from board
+		where board_no = #{board_no} 
+	</delete>
+
+	<!-- 게시글 수정 -->
+	<update id="updateOrigin" parameterType="Board">
+		update board 
+		set board_title = #{board_title}, 
+			board_content = #{board_content}
+			<if test="board_original_filename != null">
+			, 
+			board_original_filename = #{board_original_filename}, 
+			board_rename_filename = #{board_rename_filename} 
+			</if>
+			<if test="board_original_filename == null">
+			, 
+			board_original_filename = null, 
+			board_rename_filename = null 
+			</if>
+		where board_no = #{board_no}
+	</update>
+	
+</mapper>

@@ -36,7 +36,7 @@ public class AdminDashboardController {
 		ArrayList<PieData> pie_data = admindashboardService.categorySaleRate();
 		
 		List<String> month = new ArrayList<String>();
-		List<Integer> earning = new ArrayList<>(bar_data.size());
+		List<Integer> earning = new ArrayList<Integer>(bar_data.size());
 		List<String> category = new ArrayList<String>();
 		List<Integer> cnt = new ArrayList<>(pie_data.size());
 		
